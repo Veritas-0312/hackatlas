@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bug Hunting Roadmap 2025+</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #080c10;
+    --surface: #0d1117;
+    --surface2: #141b24;
+    --border: #1e2d3d;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6b;
+    --text: #c9d1d9;
+    --text-dim: #4a5568;
+    --text-bright: #e6edf3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 56px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(36px, 6vw, 64px);
+    color: var(--text-bright);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* Prerequisites section */
+  .prereq-section {
+    margin-bottom: 56px;
+  }
+
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--text-bright);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+
+  .prereq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .prereq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 16px 18px;
+    position: relative;
+  }
+
+  .prereq-card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+  }
+
+  .prereq-card p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .prereq-card .resources {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .prereq-card .resources a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .prereq-card .resources a:hover { opacity: 1; }
+
+  /* Vulnerability cards */
+  .vuln-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .vuln-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .vuln-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+  }
+
+  .vuln-card:nth-child(1)::before { background: #00d4ff; }
+  .vuln-card:nth-child(2)::before { background: #ff6b35; }
+  .vuln-card:nth-child(3)::before { background: #7fff6b; }
+  .vuln-card:nth-child(4)::before { background: #ffdd57; }
+  .vuln-card:nth-child(5)::before { background: #da70d6; }
+  .vuln-card:nth-child(6)::before { background: #ff4466; }
+  .vuln-card:nth-child(7)::before { background: #00ffcc; }
+  .vuln-card:nth-child(8)::before { background: #ff9500; }
+  .vuln-card:nth-child(9)::before { background: #5ac8fa; }
+  .vuln-card:nth-child(10)::before { background: #bf5af2; }
+
+  .vuln-header {
+    padding: 20px 24px 16px 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .vuln-number {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 28px;
+    padding-top: 3px;
+  }
+
+  .vuln-header-text { flex: 1; }
+
+  .vuln-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-bright);
+  }
+
+  .vuln-tagline {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .badge-hard { color: #ff4466; border-color: #ff446640; background: #ff44660d; }
+  .badge-medium { color: #ffdd57; border-color: #ffdd5740; background: #ffdd570d; }
+  .badge-easy { color: #7fff6b; border-color: #7fff6b40; background: #7fff6b0d; }
+  .badge-emerging { color: #00ffcc; border-color: #00ffcc40; background: #00ffcc0d; }
+  .badge-reward { color: #da70d6; border-color: #da70d640; background: #da70d60d; }
+
+  .toggle-icon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    padding-top: 2px;
+    transition: transform 0.2s;
+  }
+
+  .vuln-body {
+    display: none;
+    padding: 0 28px 24px 72px;
+    border-top: 1px solid var(--border);
+  }
+
+  .vuln-body.open { display: block; }
+
+  .vuln-body .toggle-icon.open {
+    transform: rotate(90deg);
+  }
+
+  .body-section {
+    margin-top: 20px;
+  }
+
+  .body-section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    opacity: 0.7;
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .columns { grid-template-columns: 1fr; }
+    .vuln-body { padding-left: 28px; }
+    .prereq-grid { grid-template-columns: 1fr; }
+  }
+
+  .resource-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .resource-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .resource-list li::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 11px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .resource-list li a {
+    font-size: 13px;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s;
+    line-height: 1.4;
+  }
+
+  .resource-list li a:hover { color: var(--accent); }
+
+  .resource-list li .res-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .prereq-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .prereq-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">// Learning Roadmap</div>
+    <h1>Bug Hunting<br><span>2025+</span></h1>
+    <p class="subtitle">A structured guide to learning the 10 high-value vulnerability classes — prerequisites first, then targeted resources for each category.</p>
+  </header>
+
+  <!-- PREREQUISITES -->
+  <section class="prereq-section">
+    <div class="section-label">Phase 01 — Foundations</div>
+    <div class="section-title">Prerequisites Before Everything</div>
+    <div class="prereq-grid">
+
+      <div class="prereq-card">
+        <h3>Networking Fundamentals</h3>
+        <p>HTTP/S request lifecycle, DNS, TCP/IP, headers, cookies, TLS. You must understand what happens when a browser talks to a server.</p>
+        <div class="resources">
+          <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview">MDN — HTTP Overview</a>
+          <a href="https://www.cloudflare.com/learning/network-layer/what-is-the-network-layer/">Cloudflare Learning Center</a>
+          <a href="https://www.youtube.com/@NetworkChuck">NetworkChuck (YouTube)</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>Web App Architecture</h3>
+        <p>Frontend/backend separation, REST vs GraphQL APIs, sessions vs JWTs, CDNs, reverse proxies, microservices patterns.</p>
+        <div class="resources">
+          <a href="https://roadmap.sh/backend">roadmap.sh — Backend Roadmap</a>
+          <a href="https://www.youtube.com/watch?v=RqTEHSBrYFw">Hussein Nasser — Web Architecture</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>Scripting (Python / JS)</h3>
+        <p>Write HTTP clients, parse JSON, automate requests, build PoC scripts. You don't need to be a developer but you need working fluency.</p>
+        <div class="resources">
+          <a href="https://requests.readthedocs.io/en/latest/">Python Requests Docs</a>
+          <a href="https://learnpython.org">learnpython.org</a>
+          <a href="https://javascript.info">javascript.info</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>Burp Suite Proficiency</h3>
+        <p>Proxy, Repeater, Intruder, Decoder, Scanner. This is your primary tool. Invest serious time here before hunting anything.</p>
+        <div class="resources">
+          <a href="https://portswigger.net/burp/documentation/desktop/getting-started">PortSwigger — Getting Started</a>
+          <a href="https://www.youtube.com/@TCMSecurityAcademy">TCM Security (YouTube)</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>OWASP Top 10 Baseline</h3>
+        <p>Understand the classic categories conceptually. Not deep enough to hunt, but essential context for everything else you'll learn.</p>
+        <div class="resources">
+          <a href="https://owasp.org/www-project-top-ten/">OWASP Top 10 (Official)</a>
+          <a href="https://portswigger.net/web-security">PortSwigger Web Security Academy</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>Linux & CLI Basics</h3>
+        <p>Shell scripting, curl, grep, pipes, process management. Most tools run on Linux and most targets expose Linux internals.</p>
+        <div class="resources">
+          <a href="https://overthewire.org/wargames/bandit/">OverTheWire: Bandit</a>
+          <a href="https://linuxcommand.org/tlcl.php">The Linux Command Line (free book)</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>Recon & Enumeration</h3>
+        <p>Subdomain enum, port scanning, tech fingerprinting, Shodan, OSINT. Understanding the attack surface comes before finding bugs.</p>
+        <div class="resources">
+          <a href="https://github.com/projectdiscovery/subfinder">subfinder — ProjectDiscovery</a>
+          <a href="https://www.hacker101.com">Hacker101 — Free Coursework</a>
+        </div>
+      </div>
+
+      <div class="prereq-card">
+        <h3>Platform Basics (HackerOne / Bugcrowd)</h3>
+        <p>Understand scope rules, disclosure policies, severity ratings (CVSS), and report writing before submitting anything.</p>
+        <div class="resources">
+          <a href="https://www.hackerone.com/hackers/hacker101">HackerOne Hacker101</a>
+          <a href="https://docs.bugcrowd.com/researchers/">Bugcrowd Researcher Docs</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VULNERABILITY CARDS -->
+  <section>
+    <div class="section-label">Phase 02 — Vulnerability Classes</div>
+    <div class="section-title">Targeted Learning Paths</div>
+    <div class="vuln-list" id="vulnList">
+
+      <!-- 1. Business Logic -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">01</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Business Logic Flaws</div>
+            <div class="vuln-tagline">Product understanding is the moat — no scanner can replace this</div>
+            <div class="badge-row">
+              <span class="badge badge-hard">Hard to automate</span>
+              <span class="badge badge-reward">High reward</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">App architecture</span>
+                <span class="prereq-tag">HTTP flows</span>
+                <span class="prereq-tag">Burp Suite</span>
+                <span class="prereq-tag">Race condition basics</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/logic-flaws">PortSwigger — Business Logic Labs<span class="res-note">Free, hands-on, industry standard</span></a></li>
+                <li><a href="https://github.com/Ignitetechnologies/BugBounty-In-The-Wild">Bug Bounty in the Wild — GitHub<span class="res-note">Real disclosed reports organized by type</span></a></li>
+                <li><a href="https://hackerone.com/hacktivity">HackerOne Hacktivity<span class="res-note">Read disclosed logic bug reports for pattern recognition</span></a></li>
+                <li><a href="https://www.youtube.com/@NahamSec">NahamSec — YouTube<span class="res-note">Live bug hunting streams, logic bug walkthroughs</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. OAuth/SSO -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">02</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">OAuth / SSO / Auth Protocols</div>
+            <div class="vuln-tagline">Misimplementation in complex flows — requires protocol mastery</div>
+            <div class="badge-row">
+              <span class="badge badge-hard">Protocol depth required</span>
+              <span class="badge badge-reward">Critical severity</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">HTTP & cookies</span>
+                <span class="prereq-tag">Sessions vs JWT</span>
+                <span class="prereq-tag">Base64 / encoding</span>
+                <span class="prereq-tag">CSRF concepts</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/oauth">PortSwigger — OAuth Labs<span class="res-note">Best structured coverage of OAuth attack patterns</span></a></li>
+                <li><a href="https://oauth.net/2/">oauth.net — Official RFC Docs<span class="res-note">Read the spec itself — misunderstanding the spec is where bugs live</span></a></li>
+                <li><a href="https://www.youtube.com/watch?v=996OiexHze0">Fireship — OAuth 2.0 Explained<span class="res-note">Fast visual conceptual primer</span></a></li>
+                <li><a href="https://book.hacktricks.xyz/pentesting-web/oauth-to-account-takeover">HackTricks — OAuth to ATO<span class="res-note">Attack-focused cheatsheet</span></a></li>
+                <li><a href="https://research.securitum.com/oauth-vulnerabilities/">Securitum — OAuth Vulnerabilities (Research)<span class="res-note">Deep technical write-ups on real bugs</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. API Vulns -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">03</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">API Vulnerabilities (BOLA / IDOR / GraphQL)</div>
+            <div class="vuln-tagline">The largest attack surface in modern apps — everywhere and underexplored</div>
+            <div class="badge-row">
+              <span class="badge badge-medium">Medium difficulty</span>
+              <span class="badge badge-reward">Very high volume</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">REST API concepts</span>
+                <span class="prereq-tag">JSON</span>
+                <span class="prereq-tag">GraphQL basics</span>
+                <span class="prereq-tag">Burp Suite</span>
+                <span class="prereq-tag">Access control concepts</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/access-control/idor">PortSwigger — IDOR Labs<span class="res-note">Core hands-on IDOR training</span></a></li>
+                <li><a href="https://github.com/OWASP/API-Security">OWASP API Security Top 10<span class="res-note">The definitive reference for API attack classes</span></a></li>
+                <li><a href="https://graphql.org/learn/">GraphQL Official Docs<span class="res-note">Learn the tech before attacking it</span></a></li>
+                <li><a href="https://github.com/nicholasaleks/graphql-threat-matrix">GraphQL Threat Matrix — GitHub<span class="res-note">Comprehensive attack reference for GraphQL</span></a></li>
+                <li><a href="https://www.apisecuniversity.com">APISec University<span class="res-note">Free API security focused courses</span></a></li>
+                <li><a href="https://github.com/assetnote/kiterunner">Kiterunner — Assetnote<span class="res-note">API endpoint discovery tool worth learning</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Race Conditions -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">04</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Race Conditions & Concurrency</div>
+            <div class="vuln-tagline">Parallel requests exposing TOCTOU windows — still massively underreported</div>
+            <div class="badge-row">
+              <span class="badge badge-medium">Technique-driven</span>
+              <span class="badge badge-reward">High impact</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">Concurrency concepts</span>
+                <span class="prereq-tag">Burp Turbo Intruder</span>
+                <span class="prereq-tag">Business logic understanding</span>
+                <span class="prereq-tag">HTTP/2 basics</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/race-conditions">PortSwigger — Race Condition Labs<span class="res-note">The definitive modern coverage including single-packet attacks</span></a></li>
+                <li><a href="https://portswigger.net/research/smashing-the-state-machine">James Kettle — Smashing the State Machine<span class="res-note">The foundational research paper on modern race condition attacks</span></a></li>
+                <li><a href="https://github.com/PortSwigger/turbo-intruder">Turbo Intruder — GitHub<span class="res-note">The primary tool; read the examples carefully</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. SSRF -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">05</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Server-Side Request Forgery (SSRF)</div>
+            <div class="vuln-tagline">Cloud metadata theft and internal network pivoting via crafted URLs</div>
+            <div class="badge-row">
+              <span class="badge badge-hard">Cloud knowledge required</span>
+              <span class="badge badge-reward">Critical in cloud</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">URL parsing</span>
+                <span class="prereq-tag">DNS concepts</span>
+                <span class="prereq-tag">AWS / GCP basics</span>
+                <span class="prereq-tag">Internal network concepts</span>
+                <span class="prereq-tag">Blind vs. OOB techniques</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/ssrf">PortSwigger — SSRF Labs<span class="res-note">Covers basic to advanced blind SSRF scenarios</span></a></li>
+                <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html">OWASP SSRF Cheat Sheet<span class="res-note">Attacker perspective through defensive lens</span></a></li>
+                <li><a href="https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery">PayloadsAllTheThings — SSRF<span class="res-note">Bypass techniques, cloud-specific payloads</span></a></li>
+                <li><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">AWS — Instance Metadata Docs<span class="res-note">Understand what SSRF can expose in AWS</span></a></li>
+                <li><a href="https://github.com/projectdiscovery/interactsh">Interactsh — OOB Testing Tool<span class="res-note">Essential for blind SSRF detection</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Deserialization -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">06</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Deserialization & Dependency Confusion</div>
+            <div class="vuln-tagline">Deep backend exploitation — Java, PHP, Python serialization formats</div>
+            <div class="badge-row">
+              <span class="badge badge-hard">High technical depth</span>
+              <span class="badge badge-reward">RCE potential</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">Java basics</span>
+                <span class="prereq-tag">PHP basics</span>
+                <span class="prereq-tag">Object-oriented concepts</span>
+                <span class="prereq-tag">Binary / hex encoding</span>
+                <span class="prereq-tag">npm / pip package concepts</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/deserialization">PortSwigger — Deserialization Labs<span class="res-note">Start here, covers Java & PHP</span></a></li>
+                <li><a href="https://github.com/frohoff/ysoserial">ysoserial — Java Deserialization Tool<span class="res-note">The primary tool; study its gadget chains</span></a></li>
+                <li><a href="https://medium.com/@alex.birsan/dependency-confusion-4a5d60fec610">Alex Birsan — Dependency Confusion (Original Research)<span class="res-note">The paper that defined the supply chain attack vector</span></a></li>
+                <li><a href="https://book.hacktricks.xyz/pentesting-web/deserialization">HackTricks — Deserialization<span class="res-note">Language-by-language attack reference</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. AI/LLM -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">07</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">AI / LLM Attack Surface</div>
+            <div class="vuln-tagline">Prompt injection, insecure tool use, and data exfiltration via AI interfaces</div>
+            <div class="badge-row">
+              <span class="badge badge-emerging">Emerging frontier</span>
+              <span class="badge badge-easy">Low competition</span>
+              <span class="badge badge-reward">Growing bounties</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">LLM concepts (how transformers work)</span>
+                <span class="prereq-tag">Prompt engineering</span>
+                <span class="prereq-tag">API integrations</span>
+                <span class="prereq-tag">RAG architecture basics</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">OWASP LLM Top 10<span class="res-note">The emerging standard for LLM vulnerability taxonomy</span></a></li>
+                <li><a href="https://learnprompting.org/docs/prompt_hacking/intro">Learn Prompting — Prompt Hacking<span class="res-note">Free, practical, covers injection and jailbreaking</span></a></li>
+                <li><a href="https://github.com/greshake/llm-security">LLM Security — GitHub<span class="res-note">Research collection on prompt injection and indirect attacks</span></a></li>
+                <li><a href="https://gandalf.lakera.ai">Gandalf — Lakera AI<span class="res-note">Gamified prompt injection challenges</span></a></li>
+                <li><a href="https://www.youtube.com/@aiexplained-official">AI Explained — YouTube<span class="res-note">Deep dives on LLM behavior and jailbreaks</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Cache Poisoning / Smuggling -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">08</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Web Cache Poisoning & Request Smuggling</div>
+            <div class="vuln-tagline">CDN/proxy abuse requiring deep HTTP protocol understanding</div>
+            <div class="badge-row">
+              <span class="badge badge-hard">Protocol mastery</span>
+              <span class="badge badge-reward">High severity findings</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">HTTP/1.1 vs HTTP/2</span>
+                <span class="prereq-tag">CDN / caching concepts</span>
+                <span class="prereq-tag">Transfer-Encoding header</span>
+                <span class="prereq-tag">Burp Suite advanced</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/request-smuggling">PortSwigger — Request Smuggling Labs<span class="res-note">James Kettle's labs — the gold standard coverage</span></a></li>
+                <li><a href="https://portswigger.net/web-security/web-cache-poisoning">PortSwigger — Cache Poisoning Labs<span class="res-note">Complete coverage from basics to advanced</span></a></li>
+                <li><a href="https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn">HTTP Desync Attacks — Research Paper<span class="res-note">The foundational research by James Kettle</span></a></li>
+                <li><a href="https://portswigger.net/research/browser-powered-desync-attacks">Browser-Powered Desync Attacks<span class="res-note">2022 research expanding the attack surface</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Subdomain / Cloud Misc -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">09</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Subdomain Takeover & Cloud Misconfiguration</div>
+            <div class="vuln-tagline">S3 policies, Azure AD, dangling DNS — cloud knowledge is the moat</div>
+            <div class="badge-row">
+              <span class="badge badge-medium">Recon-heavy</span>
+              <span class="badge badge-reward">Consistent payouts</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">DNS (CNAME, A records)</span>
+                <span class="prereq-tag">AWS fundamentals</span>
+                <span class="prereq-tag">S3 / blob storage</span>
+                <span class="prereq-tag">Cloud IAM concepts</span>
+                <span class="prereq-tag">Subdomain enumeration tools</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://github.com/EdOverflow/can-i-take-over-xyz">can-i-take-over-xyz — GitHub<span class="res-note">The definitive reference for takeover-vulnerable services</span></a></li>
+                <li><a href="https://aws.amazon.com/training/learn-about/cloud-practitioner/">AWS Cloud Practitioner (Free)<span class="res-note">Essential cloud foundation before cloud security</span></a></li>
+                <li><a href="https://rhinosecuritylabs.com/cloud-security/pacu-open-source-aws-exploitation-framework/">Pacu — AWS Exploitation Framework<span class="res-note">Offensive AWS tool, learn it to understand what's at stake</span></a></li>
+                <li><a href="https://cloudsecwiki.com">CloudSec Wiki<span class="res-note">Community-maintained cloud security knowledge base</span></a></li>
+                <li><a href="https://github.com/projectdiscovery/nuclei-templates">Nuclei Templates<span class="res-note">Cloud misconfiguration detection templates to study</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Second-Order / Stored -->
+      <div class="vuln-card">
+        <div class="vuln-header" onclick="toggle(this)">
+          <div class="vuln-number">10</div>
+          <div class="vuln-header-text">
+            <div class="vuln-name">Second-Order & Stored Attack Chains</div>
+            <div class="vuln-tagline">Stored payloads triggering in unexpected downstream contexts</div>
+            <div class="badge-row">
+              <span class="badge badge-hard">Chain thinking required</span>
+              <span class="badge badge-reward">Critical severity</span>
+            </div>
+          </div>
+          <div class="toggle-icon">▸</div>
+        </div>
+        <div class="vuln-body">
+          <div class="columns">
+            <div class="body-section">
+              <div class="body-section-label">Prerequisites</div>
+              <div class="prereq-inline">
+                <span class="prereq-tag">XSS fundamentals</span>
+                <span class="prereq-tag">SQLi basics</span>
+                <span class="prereq-tag">Data flow analysis</span>
+                <span class="prereq-tag">PDF / export functionality</span>
+                <span class="prereq-tag">Admin panel recon</span>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-label">Where to Learn</div>
+              <ul class="resource-list">
+                <li><a href="https://portswigger.net/web-security/cross-site-scripting/stored">PortSwigger — Stored XSS Labs<span class="res-note">Foundation before escalating to second-order</span></a></li>
+                <li><a href="https://portswigger.net/research/server-side-html-injection">Server-Side Template Injection Research<span class="res-note">Common second-order chain component</span></a></li>
+                <li><a href="https://www.trufflesecurity.com/blog/hacking-pdf-generators">Hacking PDF Generators — TruffleHog<span class="res-note">How stored payloads fire in PDF exports</span></a></li>
+                <li><a href="https://hackerone.com/hacktivity?querystring=second-order">HackerOne — Search "second order"<span class="res-note">Read disclosed reports to understand real-world chains</span></a></li>
+                <li><a href="https://www.youtube.com/@jhaddix">Jason Haddix — YouTube<span class="res-note">Methodology-focused content, bug chain thinking</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    // LEARN → PRACTICE → REPORT → REPEAT &nbsp;|&nbsp; BUILD WITH PORTSWIGGER, HACK WITH CURIOSITY
+  </footer>
+</div>
+
+<script>
+  function toggle(header) {
+    const body = header.nextElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    icon.style.transform = isOpen ? '' : 'rotate(90deg)';
+  }
+</script>
+</body>
+</html>
